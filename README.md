@@ -1,2 +1,2 @@
 # rest-client
-API like Hibernate repositories to easy use REST API in Java &amp; Android
+API based on Annotations like Hibernate repositories to easy use REST API in Java & Android
