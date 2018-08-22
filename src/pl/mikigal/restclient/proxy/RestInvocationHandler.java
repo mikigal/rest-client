@@ -5,6 +5,7 @@ import pl.mikigal.restclient.annotations.PathVariable;
 import pl.mikigal.restclient.annotations.RequestParam;
 import pl.mikigal.restclient.annotations.RestApi;
 import pl.mikigal.restclient.data.Argument;
+import pl.mikigal.restclient.data.Header;
 import pl.mikigal.restclient.enums.ArgumentType;
 import pl.mikigal.restclient.utils.RequestUtils;
 import pl.mikigal.restclient.validators.ArgumentValidator;
@@ -22,9 +23,11 @@ public class RestInvocationHandler<T> implements InvocationHandler {
 
     private Class<T> type;
     private Validator restValidator;
+    private Header[] headers;
 
-    public RestInvocationHandler(Class<T> type) {
+    public RestInvocationHandler(Class<T> type, Header[] headers) {
         this.type = type;
+        this.headers = headers;
 
         this.restValidator = new RestValidator(this.type);
         this.restValidator.validate();
@@ -68,7 +71,10 @@ public class RestInvocationHandler<T> implements InvocationHandler {
             System.out.println();
         }
         System.out.println();
-        System.out.println("Parsed URL: " + RequestUtils.parseGet(restApi, endpoint, arguments));
-        return null;
+        String url = RequestUtils.parseGet(restApi, endpoint, arguments);
+        System.out.println("Parsed URL: " + url);
+        System.out.println("Connecting... \n\n");
+
+        return RequestUtils.connect(url, endpoint.method(),  headers);
     }
 }

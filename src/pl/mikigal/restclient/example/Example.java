@@ -8,11 +8,11 @@ public class Example {
     public static void main(String[] args) {
         Hentai api = RestFactory.init(Hentai.class);
 
-        RestResponse response = api.getImage("hentai", "abc", "xd");
+        RestResponse response = api.getImage("hentai");
 
-        /*System.out.println("HTTP response code: " + response.getCode());
+        System.out.println("HTTP response code: " + response.getCode());
         System.out.println("Response value: ");
-        System.out.println(response.getResponse());*/
+        System.out.println(response.getResponse());
     }
 
 }

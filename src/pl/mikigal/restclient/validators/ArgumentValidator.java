@@ -3,6 +3,7 @@ package pl.mikigal.restclient.validators;
 import pl.mikigal.restclient.annotations.Endpoint;
 import pl.mikigal.restclient.annotations.PathVariable;
 import pl.mikigal.restclient.annotations.RequestParam;
+import pl.mikigal.restclient.exceptions.IllegalParameterTypeException;
 import pl.mikigal.restclient.exceptions.MissingAnnotationException;
 import pl.mikigal.restclient.exceptions.MissingPathVariableException;
 import pl.mikigal.restclient.exceptions.TooMuchAnnotationsException;
@@ -32,6 +33,9 @@ public class ArgumentValidator implements Validator {
 
         if(this.isPathVariable() && !endpoint.name().contains("{" + getAsPathVariable().value() + "}"))
             throw new MissingPathVariableException(endpoint, getAsPathVariable());
+
+        if(!(parameter.getType().isPrimitive() || parameter.getType().equals(String.class)))
+            throw new IllegalParameterTypeException(parameter);
 
     }
 
