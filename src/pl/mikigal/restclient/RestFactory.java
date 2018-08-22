@@ -6,7 +6,7 @@ import java.lang.reflect.Proxy;
 
 public class RestFactory {
 
-    public static <T> T loadRest(Class<T> clazz) {
+    public static <T> T init(Class<T> clazz) {
         return (T) Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz}, new RestInvocationHandler<>(clazz));
     }
 }

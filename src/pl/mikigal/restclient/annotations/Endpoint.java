@@ -1,6 +1,5 @@
 package pl.mikigal.restclient.annotations;
 
-import com.sun.istack.internal.NotNull;
 import pl.mikigal.restclient.enums.HttpMethod;
 
 import java.lang.annotation.ElementType;

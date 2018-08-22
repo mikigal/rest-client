@@ -13,14 +13,11 @@ public class RestValidator implements Validator {
     }
 
     @Override
-    public boolean validate() {
+    public void validate() {
         if(!clazz.isInterface())
             throw new NonInterfaceException(clazz);
 
         if(!clazz.isAnnotationPresent(RestApi.class))
             throw new NonRestApiException(clazz);
-
-
-        return false;
     }
 }

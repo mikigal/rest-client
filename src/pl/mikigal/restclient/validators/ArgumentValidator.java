@@ -12,43 +12,38 @@ import java.lang.reflect.Parameter;
 
 public class ArgumentValidator implements Validator {
 
+    private Class restApi;
     private Endpoint endpoint;
     private Parameter parameter;
-    private Annotation[] annotations;
 
-    public ArgumentValidator(Endpoint endpoint, Parameter parameter, Annotation[] annotations) {
+    public ArgumentValidator(Class restApi, Endpoint endpoint, Parameter parameter) {
+        this.restApi = restApi;
         this.endpoint = endpoint;
         this.parameter = parameter;
-        this.annotations = annotations;
     }
 
     @Override
-    public boolean validate() {
-        if(!isPathVariable() && !isRequestParam())
-            throw new MissingAnnotationException(this.parameter);
+    public void validate() {
+        if(!this.isPathVariable() && !this.isRequestParam())
+            throw new MissingAnnotationException("Parameter " + restApi.getName() + "." + parameter.getName() + " has not any annotations! Every argument in REST API interface needs to have @RequestParam or @PathVariable annotation");
 
         if(this.isPathVariable() && this.isRequestParam())
             throw new TooMuchAnnotationsException(this.parameter);
 
-        if(this.isPathVariable() && endpoint.name().contains("{" + get(PathVariable.class).value() + "}"))
-            throw new MissingPathVariableException(endpoint, get(PathVariable.class));
+        if(this.isPathVariable() && !endpoint.name().contains("{" + getAsPathVariable().value() + "}"))
+            throw new MissingPathVariableException(endpoint, getAsPathVariable());
 
-        return false;
     }
 
-    private <T> T get(Class<T> type) {
-        for(Annotation a : annotations)
-            if(a.annotationType().equals(type))
-                return (T) a;
-
-        return null;
+    public PathVariable getAsPathVariable() {
+        return parameter.getAnnotation(PathVariable.class);
     }
 
     private boolean isPathVariable() {
-        return get(PathVariable.class) != null;
+        return parameter.isAnnotationPresent(PathVariable.class);
     }
 
     private boolean isRequestParam() {
-        return get(RequestParam.class) != null;
+        return parameter.isAnnotationPresent(RequestParam.class);
     }
 }
