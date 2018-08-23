@@ -13,4 +13,5 @@ public @interface Endpoint {
 
     public String name();
     public HttpMethod method();
+    public String contentType() default "application/x-www-form-urlencoded";
 }

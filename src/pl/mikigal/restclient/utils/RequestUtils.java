@@ -6,7 +6,6 @@ import pl.mikigal.restclient.data.Argument;
 import pl.mikigal.restclient.data.Header;
 import pl.mikigal.restclient.data.RestResponse;
 import pl.mikigal.restclient.enums.ArgumentType;
-import pl.mikigal.restclient.enums.HttpMethod;
 import pl.mikigal.restclient.exceptions.InvalidRequestException;
 
 import java.io.IOException;
@@ -16,22 +15,16 @@ import java.util.Scanner;
 
 public class RequestUtils {
 
-    private static final Header USER_AGENT_HEADER = new Header("User-Agent", "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36");
-
-    public static RestResponse connect(String url, HttpMethod method, Header[] headers) throws IOException {
+    public static RestResponse connect(String url, RestApi restApi, Endpoint endpoint, Header[] headers) throws IOException {
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
 
-        conn.setRequestMethod(method.name());
+        conn.setRequestMethod(endpoint.method().name());
+        conn.addRequestProperty("User-Agent", restApi.userAgent());
+        conn.addRequestProperty("Content-Type", endpoint.contentType());
 
-        boolean customAgent = false;
-        for(Header h : headers) {
-            conn.addRequestProperty(h.getName(), h.getValue());
-            if(h.getName().equalsIgnoreCase("User-Agent"))
-                customAgent = true;
-        }
-
-        if(!customAgent)
-            conn.addRequestProperty(USER_AGENT_HEADER.getName(), USER_AGENT_HEADER.getValue());
+        for(Header h : headers)
+            if(conn.getRequestProperty(h.getName()) == null)
+                conn.addRequestProperty(h.getName(), h.getValue());
 
         Scanner scanner = new Scanner(conn.getInputStream());
         String content = "";
@@ -45,7 +38,7 @@ public class RequestUtils {
     }
 
     public static String parseGet(RestApi restApi, Endpoint endpoint, List<Argument> arguments) {
-        String base = restApi.base();
+        String base = restApi.value();
 
         if(base.endsWith("/"))
             base = base.substring(0, base.length() - 1); // http://mikigal.pl

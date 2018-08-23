@@ -6,7 +6,7 @@ import pl.mikigal.restclient.annotations.RestApi;
 import pl.mikigal.restclient.data.RestResponse;
 import pl.mikigal.restclient.enums.HttpMethod;
 
-@RestApi(base = "https://nekobot.xyz/api/")
+@RestApi("https://nekobot.xyz/api/")
 public interface Hentai {
 
     @Endpoint(name = "/image", method = HttpMethod.GET)

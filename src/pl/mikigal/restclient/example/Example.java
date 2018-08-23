@@ -1,14 +1,15 @@
 package pl.mikigal.restclient.example;
 
 import pl.mikigal.restclient.RestFactory;
+import pl.mikigal.restclient.data.Header;
 import pl.mikigal.restclient.data.RestResponse;
 
 public class Example {
 
     public static void main(String[] args) {
-        Hentai api = RestFactory.init(Hentai.class);
+        Test api = RestFactory.init(Test.class);
 
-        RestResponse response = api.getImage("hentai");
+        RestResponse response = api.test();
 
         System.out.println("HTTP response code: " + response.getCode());
         System.out.println("Response value: ");

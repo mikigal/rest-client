@@ -43,38 +43,41 @@ public class RestInvocationHandler<T> implements InvocationHandler {
 
         Endpoint endpoint = method.getAnnotation(Endpoint.class);
 
-        System.out.println("Called REST API: " + restApi.base());
+        System.out.println("Called REST API: " + restApi.value());
         System.out.println("Called Endpoint: " + endpoint.name());
         System.out.println();
         System.out.println("Arguments: ");
 
         List<Argument> arguments = new ArrayList<>();
-        for(int i = 0; i < args.length; i++) {
-            Parameter param = method.getParameters()[i];
-            Object value = args[i];
 
-            Validator validator = new ArgumentValidator(type, endpoint, param);
-            validator.validate();
+        if(args != null) {
+            for(int i = 0; i < args.length; i++) {
+                Parameter param = method.getParameters()[i];
+                Object value = args[i];
 
-            Argument arg;
-            if(param.isAnnotationPresent(RequestParam.class))
-                arg = new Argument(ArgumentType.REQUEST_PARAM, param.getAnnotation(RequestParam.class).value(), value);
-            else
-                arg = new Argument(ArgumentType.PATH_VARIABLE, param.getAnnotation(PathVariable.class).value(), value);
+                Validator validator = new ArgumentValidator(type, endpoint, param);
+                validator.validate();
 
+                Argument arg;
+                if(param.isAnnotationPresent(RequestParam.class))
+                    arg = new Argument(ArgumentType.REQUEST_PARAM, param.getAnnotation(RequestParam.class).value(), value);
+                else
+                    arg = new Argument(ArgumentType.PATH_VARIABLE, param.getAnnotation(PathVariable.class).value(), value);
 
-            arguments.add(arg);
+                arguments.add(arg);
 
-            System.out.println("Argument type: " + arg.getType());
-            System.out.println("Argument name: " + arg.getName());
-            System.out.println("Argument value: " + arg.getValue());
-            System.out.println();
+                System.out.println("Argument type: " + arg.getType());
+                System.out.println("Argument name: " + arg.getName());
+                System.out.println("Argument value: " + arg.getValue());
+                System.out.println();
+            }
         }
+
         System.out.println();
         String url = RequestUtils.parseGet(restApi, endpoint, arguments);
         System.out.println("Parsed URL: " + url);
         System.out.println("Connecting... \n\n");
 
-        return RequestUtils.connect(url, endpoint.method(),  headers);
+        return RequestUtils.connect(url, restApi, endpoint,  headers);
     }
 }
