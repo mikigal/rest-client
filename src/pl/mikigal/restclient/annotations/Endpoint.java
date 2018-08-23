@@ -13,5 +13,5 @@ public @interface Endpoint {
 
     public String name();
     public HttpMethod method();
-    public String contentType() default "application/x-www-form-urlencoded";
+    public String contentType() default "application/x-www-form-urlencoded; charset=UTF-8";
 }

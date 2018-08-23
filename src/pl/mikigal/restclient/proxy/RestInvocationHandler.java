@@ -1,9 +1,6 @@
 package pl.mikigal.restclient.proxy;
 
-import pl.mikigal.restclient.annotations.Endpoint;
-import pl.mikigal.restclient.annotations.PathVariable;
-import pl.mikigal.restclient.annotations.RequestParam;
-import pl.mikigal.restclient.annotations.RestApi;
+import pl.mikigal.restclient.annotations.*;
 import pl.mikigal.restclient.data.Argument;
 import pl.mikigal.restclient.data.Header;
 import pl.mikigal.restclient.enums.ArgumentType;
@@ -43,12 +40,10 @@ public class RestInvocationHandler<T> implements InvocationHandler {
 
         Endpoint endpoint = method.getAnnotation(Endpoint.class);
 
-        System.out.println("Called REST API: " + restApi.value());
-        System.out.println("Called Endpoint: " + endpoint.name());
-        System.out.println();
-        System.out.println("Arguments: ");
+        String auth = null;
 
         List<Argument> arguments = new ArrayList<>();
+        List<Argument> postArguments = new ArrayList<>();
 
         if(args != null) {
             for(int i = 0; i < args.length; i++) {
@@ -58,26 +53,24 @@ public class RestInvocationHandler<T> implements InvocationHandler {
                 Validator validator = new ArgumentValidator(type, endpoint, param);
                 validator.validate();
 
-                Argument arg;
+                Argument arg = null;
                 if(param.isAnnotationPresent(RequestParam.class))
                     arg = new Argument(ArgumentType.REQUEST_PARAM, param.getAnnotation(RequestParam.class).value(), value);
-                else
+                else if(param.isAnnotationPresent(PathVariable.class))
                     arg = new Argument(ArgumentType.PATH_VARIABLE, param.getAnnotation(PathVariable.class).value(), value);
+                else if(param.isAnnotationPresent(RequestBody.class)){
+                    arg = new Argument(ArgumentType.REQUEST_BODY, param.getAnnotation(RequestBody.class).value(), value);
+                    postArguments.add(arg);
+                }
+                else
+                    auth = value.toString();
 
-                arguments.add(arg);
-
-                System.out.println("Argument type: " + arg.getType());
-                System.out.println("Argument name: " + arg.getName());
-                System.out.println("Argument value: " + arg.getValue());
-                System.out.println();
+                if(arg != null)
+                    arguments.add(arg);
             }
         }
 
-        System.out.println();
-        String url = RequestUtils.parseGet(restApi, endpoint, arguments);
-        System.out.println("Parsed URL: " + url);
-        System.out.println("Connecting... \n\n");
-
-        return RequestUtils.connect(url, restApi, endpoint,  headers);
+        String url = RequestUtils.parse(restApi, endpoint, arguments);
+        return RequestUtils.connect(url, restApi, endpoint, postArguments, auth, headers);
     }
 }

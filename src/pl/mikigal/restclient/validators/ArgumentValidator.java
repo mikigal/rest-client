@@ -1,8 +1,6 @@
 package pl.mikigal.restclient.validators;
 
-import pl.mikigal.restclient.annotations.Endpoint;
-import pl.mikigal.restclient.annotations.PathVariable;
-import pl.mikigal.restclient.annotations.RequestParam;
+import pl.mikigal.restclient.annotations.*;
 import pl.mikigal.restclient.exceptions.IllegalParameterTypeException;
 import pl.mikigal.restclient.exceptions.MissingAnnotationException;
 import pl.mikigal.restclient.exceptions.MissingPathVariableException;
@@ -25,10 +23,10 @@ public class ArgumentValidator implements Validator {
 
     @Override
     public void validate() {
-        if(!this.isPathVariable() && !this.isRequestParam())
+        if(!this.isPathVariable() && !this.isRequestParam() && !this.isRequestBody() && !this.isAuthorization())
             throw new MissingAnnotationException("Parameter " + restApi.getName() + "." + parameter.getName() + " has not any annotations! Every argument in REST API interface needs to have @RequestParam or @PathVariable annotation");
 
-        if(this.isPathVariable() && this.isRequestParam())
+        if(parameter.getAnnotations().length > 1)
             throw new TooMuchAnnotationsException(this.parameter);
 
         if(this.isPathVariable() && !endpoint.name().contains("{" + getAsPathVariable().value() + "}"))
@@ -49,5 +47,13 @@ public class ArgumentValidator implements Validator {
 
     private boolean isRequestParam() {
         return parameter.isAnnotationPresent(RequestParam.class);
+    }
+
+    private boolean isRequestBody() {
+        return parameter.isAnnotationPresent(RequestBody.class);
+    }
+
+    private boolean isAuthorization() {
+        return parameter.isAnnotationPresent(Authorization.class);
     }
 }

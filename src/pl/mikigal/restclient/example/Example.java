@@ -9,7 +9,7 @@ public class Example {
     public static void main(String[] args) {
         Test api = RestFactory.init(Test.class);
 
-        RestResponse response = api.test();
+        RestResponse response = api.test("lolxad", "some_auth_string");
 
         System.out.println("HTTP response code: " + response.getCode());
         System.out.println("Response value: ");
