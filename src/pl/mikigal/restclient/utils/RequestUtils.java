@@ -1,6 +1,5 @@
 package pl.mikigal.restclient.utils;
 
-import pl.mikigal.restclient.annotations.Authorization;
 import pl.mikigal.restclient.annotations.Endpoint;
 import pl.mikigal.restclient.annotations.RestApi;
 import pl.mikigal.restclient.data.Argument;
@@ -20,7 +19,7 @@ import java.util.StringJoiner;
 
 public class RequestUtils {
 
-    public static RestResponse connect(String url, RestApi restApi, Endpoint endpoint, List<Argument> post, String auth, Header[] headers) throws IOException {
+    public static RestResponse connect(String url, RestApi restApi, Endpoint endpoint, List<Argument> post,String rawData, String auth, Header[] headers, List<Header> endpointHeaders) throws IOException {
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
 
         conn.setRequestMethod(endpoint.method().name());
@@ -30,24 +29,34 @@ public class RequestUtils {
         if(auth != null)
             conn.addRequestProperty("Authorization", auth);
 
+        for(Header h : endpointHeaders)
+            if(conn.getRequestProperty(h.getName()) == null)
+                conn.setRequestProperty(h.getName(), h.getValue());
+
         for(Header h : headers)
             if(conn.getRequestProperty(h.getName()) == null)
                 conn.addRequestProperty(h.getName(), h.getValue());
 
         if(endpoint.method() == HttpMethod.POST) {
-            StringJoiner sj = new StringJoiner("&");
-            for(Argument a : post)
-                sj.add(URLEncoder.encode(a.getName(), "UTF-8") + "=" + URLEncoder.encode(a.getValue().toString(), "UTF-8"));
+            byte[] out;
+            if(rawData == null) {
+                StringJoiner sj = new StringJoiner("&");
+                for(Argument a : post)
+                    sj.add(URLEncoder.encode(a.getName(), "UTF-8") + "=" + URLEncoder.encode(a.getValue().toString(), "UTF-8"));
 
-            byte[] out = sj.toString().getBytes(StandardCharsets.UTF_8);
+                out = sj.toString().getBytes(StandardCharsets.UTF_8);
+            }
+            else
+                out = rawData.getBytes(StandardCharsets.UTF_8);
+
             conn.setFixedLengthStreamingMode(out.length);
+            conn.setDoInput(true);
             conn.setDoOutput(true);
             conn.connect();
 
             try(OutputStream os = conn.getOutputStream()) {
                 os.write(out);
             }
-
         }
 
         Scanner scanner = new Scanner(conn.getInputStream());

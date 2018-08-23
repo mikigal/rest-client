@@ -4,6 +4,10 @@ import pl.mikigal.restclient.annotations.*;
 import pl.mikigal.restclient.data.Argument;
 import pl.mikigal.restclient.data.Header;
 import pl.mikigal.restclient.enums.ArgumentType;
+import pl.mikigal.restclient.enums.HttpMethod;
+import pl.mikigal.restclient.exceptions.InvalidGetRequestException;
+import pl.mikigal.restclient.exceptions.InvalidHeadersException;
+import pl.mikigal.restclient.exceptions.RawDataException;
 import pl.mikigal.restclient.utils.RequestUtils;
 import pl.mikigal.restclient.validators.ArgumentValidator;
 import pl.mikigal.restclient.validators.EndpointValidator;
@@ -44,6 +48,7 @@ public class RestInvocationHandler<T> implements InvocationHandler {
 
         List<Argument> arguments = new ArrayList<>();
         List<Argument> postArguments = new ArrayList<>();
+        String rawData = null;
 
         if(args != null) {
             for(int i = 0; i < args.length; i++) {
@@ -58,6 +63,8 @@ public class RestInvocationHandler<T> implements InvocationHandler {
                     arg = new Argument(ArgumentType.REQUEST_PARAM, param.getAnnotation(RequestParam.class).value(), value);
                 else if(param.isAnnotationPresent(PathVariable.class))
                     arg = new Argument(ArgumentType.PATH_VARIABLE, param.getAnnotation(PathVariable.class).value(), value);
+                else if(param.isAnnotationPresent(RawData.class))
+                    rawData = value.toString();
                 else if(param.isAnnotationPresent(RequestBody.class)){
                     arg = new Argument(ArgumentType.REQUEST_BODY, param.getAnnotation(RequestBody.class).value(), value);
                     postArguments.add(arg);
@@ -70,7 +77,27 @@ public class RestInvocationHandler<T> implements InvocationHandler {
             }
         }
 
+        List<Header> endpointHeaders = new ArrayList<>();
+        String rawHeaders = endpoint.headers().replace("; ", "");
+
+        if(!rawHeaders.equalsIgnoreCase("")) {
+            try {
+                for(String s : rawHeaders.split(";")) {
+                    String[] ss = s.split("=");
+                    endpointHeaders.add(new Header(ss[0], ss[1]));
+                }
+            } catch (Exception e) {
+                throw new InvalidHeadersException(method);
+            }
+        }
+
+        if(rawData != null && postArguments.size() != 0)
+            throw new RawDataException(method);
+
+        if(endpoint.method() == HttpMethod.GET && (rawData != null || postArguments.size() != 0))
+            throw new InvalidGetRequestException(method);
+
         String url = RequestUtils.parse(restApi, endpoint, arguments);
-        return RequestUtils.connect(url, restApi, endpoint, postArguments, auth, headers);
+        return RequestUtils.connect(url, restApi, endpoint, postArguments, rawData, auth, headers, endpointHeaders);
     }
 }

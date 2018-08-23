@@ -23,7 +23,7 @@ public class ArgumentValidator implements Validator {
 
     @Override
     public void validate() {
-        if(!this.isPathVariable() && !this.isRequestParam() && !this.isRequestBody() && !this.isAuthorization())
+        if(!this.isPathVariable() && !this.isRequestParam() && !this.isRequestBody() && !this.isAuthorization() && !this.isRawData())
             throw new MissingAnnotationException("Parameter " + restApi.getName() + "." + parameter.getName() + " has not any annotations! Every argument in REST API interface needs to have @RequestParam or @PathVariable annotation");
 
         if(parameter.getAnnotations().length > 1)
@@ -51,6 +51,10 @@ public class ArgumentValidator implements Validator {
 
     private boolean isRequestBody() {
         return parameter.isAnnotationPresent(RequestBody.class);
+    }
+
+    private boolean isRawData() {
+        return parameter.isAnnotationPresent(RawData.class);
     }
 
     private boolean isAuthorization() {
